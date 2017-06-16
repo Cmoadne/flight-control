@@ -1,15 +1,232 @@
-/******************** (C) COPYRIGHT 2014 ANO Tech ********************************
-  * 作者   ：匿名科创
- * 文件名  ：usart.c
- * 描述    ：串口驱动
- * 官网    ：www.anotc.com
- * 淘宝    ：anotc.taobao.com
- * 技术Q群 ：190169595
-**********************************************************************************/
-
+/****************(C) COPYRIGHT 2017 Cmoadne********************
+// 文件名 : usart.c
+// 路径   : K:\2016_2\EE\Train3_4\my_change\F407_FC_ANO\drivers
+// 作者   : Cmoande
+// 日期   : 2017/05/11
+// 描述   : 串口驱动
+// 备注   :
+// 版本   : V0.0 2017.5.11  初始版本  适用于我的
+                            增加了串口1接收代码
+******************************************************************/ 
 #include "usart.h"
 #include "data_transfer.h"
 #include "ultrasonic.h"
+
+#include "include.h"
+
+//我的新增代码开始
+//我的include
+#include "string.h"
+#include "stdlib.h"
+
+//我的串口1初始化代码  用于自动控制
+u16 RX_auto[CH_NUM] = {1500,1500,1000,1500,1000,1000,1000,1000}; 
+
+#if EN_USART1_RX   //如果使能了接收
+//串口1中断服务程序
+//注意,读取USARTx->SR能避免莫名其妙的错误   	
+char USART_RX_BUF_YAW[USART_REC_LEN];     //接收缓冲,最大USART_REC_LEN个字节.
+char USART_RX_BUF_PITCH[USART_REC_LEN];
+char USART_RX_BUF_ROLL[USART_REC_LEN];
+
+char USART_RX_BUF_GAS[USART_REC_LEN];       //油门
+char USART_RX_BUF_ST[USART_REC_LEN];            //开始结束
+char USART_RX_BUF_HEIGHT[USART_REC_LEN];        //高度
+char USART_RX_BUF_KEY[USART_REC_LEN];       //按键
+
+int key_value = 0;
+//接收状态
+//bit15，	接收完成标志
+//bit14，	接收到0x0d
+//bit13~0，	接收到的有效字节数目
+u16 USART_RX_STA=0;       //接收状态标记	
+//初始化IO 串口1 
+//bound:波特率
+void uart_init(u32 bound){
+    //GPIO端口设置
+    GPIO_InitTypeDef GPIO_InitStructure;
+    USART_InitTypeDef USART_InitStructure;
+    NVIC_InitTypeDef NVIC_InitStructure;
+
+    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA,ENABLE); //使能GPIOA时钟
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1,ENABLE);//使能USART1时钟
+
+    //串口1对应引脚复用映射
+    GPIO_PinAFConfig(GPIOA,GPIO_PinSource9,GPIO_AF_USART1); //GPIOA9复用为USART1
+    GPIO_PinAFConfig(GPIOA,GPIO_PinSource10,GPIO_AF_USART1); //GPIOA10复用为USART1
+
+    //USART1端口配置
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9 | GPIO_Pin_10; //GPIOA9与GPIOA10
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;//复用功能
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;	//速度50MHz
+    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP; //推挽复用输出
+    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP; //上拉
+    GPIO_Init(GPIOA,&GPIO_InitStructure); //初始化PA9，PA10
+
+    //USART1 初始化设置
+    USART_InitStructure.USART_BaudRate = bound;//波特率设置
+    USART_InitStructure.USART_WordLength = USART_WordLength_8b;//字长为8位数据格式
+    USART_InitStructure.USART_StopBits = USART_StopBits_1;//一个停止位
+    USART_InitStructure.USART_Parity = USART_Parity_No;//无奇偶校验位
+    USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;//无硬件数据流控制
+    USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;	//收发模式
+    USART_Init(USART1, &USART_InitStructure); //初始化串口1
+
+    USART_Cmd(USART1, ENABLE);  //使能串口1 
+
+    USART_ClearFlag(USART1, USART_FLAG_TC);
+
+#if EN_USART1_RX	
+    USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);//开启相关中断
+
+    //Usart1 NVIC 配置
+    NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;//串口1中断通道
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority=3;//抢占优先级3
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority =3;		//子优先级3
+    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;			//IRQ通道使能
+    NVIC_Init(&NVIC_InitStructure);	//根据指定的参数初始化VIC寄存器、
+
+#endif
+
+}
+
+//  全局输出，CH_filter[],0横滚，1俯仰，2油门，3航向 范围：+-500	
+#define UART_GET_YAW   3
+#define UART_GET_PITCH 1
+#define UART_GET_ROLL  0
+#define UART_GET_THR   2 
+#define UART_GET_HEIGHT  4   //高度控制模式
+
+void USART1_IRQHandler(void)                	//串口1中断服务程序
+{
+    u8 Res;
+    static char uart1_selsect = 0;              //收到的是什么数据 
+
+    if(USART_GetITStatus(USART1, USART_IT_RXNE) != RESET)  //接收中断(接收到的数据必须是0x0d 0x0a结尾)
+    {
+        Res =USART_ReceiveData(USART1);//(USART1->DR);	//读取接收到的数据
+        if(USART_RX_STA&0x4000)//接收到了0x0d
+        {
+            if(Res!=0x0a)
+                USART_RX_STA=0;//接收错误,重新开始
+            else 
+            {
+
+                switch(uart1_selsect)
+                {
+                case 'p':                   //PITCH
+                    RX_auto[UART_GET_PITCH] = atoi(USART_RX_BUF_PITCH);
+                    memset(USART_RX_BUF_PITCH, '\0', sizeof(USART_RX_BUF_PITCH));         //情况数组
+                    break;
+                case 'r':                   //ROLL
+                    RX_auto[UART_GET_ROLL] = atoi(USART_RX_BUF_ROLL);
+                    memset(USART_RX_BUF_ROLL, '\0', sizeof(USART_RX_BUF_ROLL));         //情况数组
+                    break;
+                case 'g':
+                    RX_auto[UART_GET_THR] = atoi(USART_RX_BUF_GAS);
+                    memset(USART_RX_BUF_GAS, '\0', sizeof(USART_RX_BUF_GAS)); 
+                    break;
+                case 'h':
+                    RX_auto[UART_GET_HEIGHT] = atoi(USART_RX_BUF_HEIGHT);
+                    memset(USART_RX_BUF_HEIGHT, '\0', sizeof(USART_RX_BUF_HEIGHT)); 
+                    break;
+                case 'k':
+                    key_value = atoi(USART_RX_BUF_KEY);
+                    //                    if(!fly_ready)
+                    //                    {
+                    switch(key_value)
+                    {
+                    case 4://server_duty_flag = 1;        //打舵机
+                        break;
+                    case 5://use_tags_height_flag = 1;
+                        //use_i_flag = 1;
+                        break;
+                    case 6://use_tags_height_flag = 0;
+                       // use_i_flag = 0;
+                        break;
+                        //校准
+                    case 1://mpu6050.Acc_CALIBRATE = 1;
+                        break;
+                    case 2://mpu6050.Gyro_CALIBRATE = 1;
+                        break;
+                    case 3://Mag_CALIBRATED = 1;
+                        break;
+                    default:  
+                        break;
+                    }
+                    //  }
+                    key_value = 0;
+                    memset(USART_RX_BUF_KEY, '\0', sizeof(USART_RX_BUF_KEY));
+                case 'y':                   //YAW
+                    RX_auto[UART_GET_YAW] = atoi(USART_RX_BUF_YAW);
+                    memset(USART_RX_BUF_YAW, '\0', sizeof(USART_RX_BUF_YAW));         //情况数组
+                    break;
+                case 's':
+                    //start_information = atoi(USART_RX_BUF_ST);
+                    memset(USART_RX_BUF_ST, '\0', sizeof(USART_RX_BUF_ST));         //情况数组      
+                    break;
+                default: break;
+                }
+                uart1_selsect = 0;
+                USART_RX_STA = 0;	//接收完成了 
+            }
+        }
+        else //还没收到0X0D
+        {	
+            if(Res==0x0d)               //接收到0x0d
+                USART_RX_STA|=0x4000;
+            else
+            {
+                if (uart1_selsect == 0)  //第一个参数
+                    uart1_selsect = Res;
+                else
+                {
+                    switch(uart1_selsect)
+                    {
+                    case 'p':
+                        USART_RX_BUF_PITCH[USART_RX_STA&0X3FFF]=Res ;
+                        USART_RX_STA++; 
+                        break;
+                    case 'r':
+                        USART_RX_BUF_ROLL[USART_RX_STA&0X3FFF]=Res ;
+                        USART_RX_STA++; 
+                        break;
+                    case 'g':
+                        USART_RX_BUF_GAS[USART_RX_STA&0X3FFF] = Res;
+                        USART_RX_STA++; 
+                        break;
+                    case 'h':
+                        USART_RX_BUF_HEIGHT[USART_RX_STA&0X3FFF]=Res ;
+                        USART_RX_STA++;
+                        break;
+                    case 'k':
+                        USART_RX_BUF_KEY[USART_RX_STA&0X3FFF]=Res ;
+                        USART_RX_STA++;
+                        break;
+                    case 'y':
+                        USART_RX_BUF_YAW[USART_RX_STA&0X3FFF]=Res ;
+                        USART_RX_STA++; 
+                        break;
+                    case 's':
+                        USART_RX_BUF_ST[USART_RX_STA&0X3FFF]=Res ;
+                        USART_RX_STA++;
+                        break;
+        
+                    default: uart1_selsect = 0;break;             
+                    } 
+
+                    if(USART_RX_STA>(USART_REC_LEN-1))
+                        USART_RX_STA=0;//接收数据错误,重新开始接收	
+                }
+
+            }		 
+        }
+
+    } 
+} 
+#endif	
+
+//我的新增代码结束
 
 void Usart2_Init(u32 br_num)
 {
@@ -244,6 +461,5 @@ void Uart5_Send(unsigned char *DataToSend ,u8 data_num)
 	}
 
 }
-
-/******************* (C) COPYRIGHT 2014 ANO TECH *****END OF FILE************/
+/******************* (C) COPYRIGHT 2017 Cmoadne *****END OF FILE************/
 

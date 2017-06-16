@@ -9,12 +9,12 @@
 
 typedef struct 
 {
-	xyz_f_t err;
-	xyz_f_t err_tmp;
-	xyz_f_t err_lpf;
-	xyz_f_t err_Int;
-	xyz_f_t g;
-	
+    xyz_f_t err;
+    xyz_f_t err_tmp;
+    xyz_f_t err_lpf;
+    xyz_f_t err_Int;
+    xyz_f_t g;
+
 }ref_t;
 
 extern xyz_f_t reference_v;

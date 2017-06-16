@@ -7,24 +7,24 @@
 
 typedef struct 
 {
-		u8 send_check;
-		u8 send_version;
-		u8 send_status;
-		u8 send_senser;
-		u8 send_senser2;
-		u8 send_pid1;
-		u8 send_pid2;
-		u8 send_pid3;
-		u8 send_pid4;
-		u8 send_pid5;
-		u8 send_pid6;
-		u8 send_rcdata;
-		u8 send_offset;
-		u8 send_motopwm;
-		u8 send_power;
-		u8 send_user;
-		u8 send_speed;
-		u8 send_location;
+    u8 send_check;
+    u8 send_version;
+    u8 send_status;
+    u8 send_senser;
+    u8 send_senser2;
+    u8 send_pid1;
+    u8 send_pid2;
+    u8 send_pid3;
+    u8 send_pid4;
+    u8 send_pid5;
+    u8 send_pid6;
+    u8 send_rcdata;
+    u8 send_offset;
+    u8 send_motopwm;
+    u8 send_power;
+    u8 send_user;
+    u8 send_speed;
+    u8 send_location;
 
 }dt_flag_t;
 

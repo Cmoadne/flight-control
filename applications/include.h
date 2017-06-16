@@ -1,3 +1,21 @@
+/****************(C) COPYRIGHT 2017 Cmoadne********************
+// 文件名 : include.h
+// 路径   : K:\2016_2\EE\Train3_4\my_change\F407_FC_ANO\applications
+// 作者   : Cmoande
+// 日期   : 2017/05/10
+// 描述   :
+// 备注   :
+// 版本   : V0.0  2017.5.10  Cmoadne  初始代码,对比去年代码
+                    *本次更改点
+                            41   关闭USB数据传输     注释
+                            120  增加我的宏定义
+                    *增加点            
+                            100  最大上升、下降速度
+                    *不同点
+                            104  遥控能控制最大角速度  MAX_CTRL_ANGLE  去年代码25.0f
+                            110  Yaw能控制最大角速度   MAX_CTRL_YAW_SPEED 去年代码450.0f            
+******************************************************************/ 
+
 #ifndef _INCLUDE_H_
 #define _INCLUDE_H_
 
@@ -23,7 +41,7 @@
 
 #define USE_TOE_IN_UNLOCK 0 // 0：默认解锁方式，1：外八解锁方式
 #define ANO_DT_USE_USART2 	//开启串口2数传功能
-#define ANO_DT_USE_USB_HID	//开启飞控USBHID连接上位机功能
+//#define ANO_DT_USE_USB_HID	//开启飞控USBHID连接上位机功能
 //=======================================
 /***************中断优先级******************/
 #define NVIC_GROUP NVIC_PriorityGroup_3		//中断分组选择
@@ -86,19 +104,54 @@ enum
 #define CTRL_2_INT_LIMIT 		0.5f *MAX_CTRL_ANGLE		//外环积分幅度
 
 #define MAX_CTRL_ASPEED 	 	300.0f									//ROL,PIT允许的最大控制角速度
-#define MAX_CTRL_YAW_SPEED 	150.0f									//YAW允许的最大控制角速度
+#define MAX_CTRL_YAW_SPEED 	450.0f									//YAW允许的最大控制角速度
 #define CTRL_1_INT_LIMIT 		0.5f *MAX_CTRL_ASPEED		//内环积分幅度
 
 
-#define MAX_PWM				100			///%	最大PWM输出为100%油门
-#define MAX_THR       80 			///%	油门通道最大占比80%，留20%给控制量
-#define READY_SPEED   20			///%	解锁后电机转速20%油门
+#define MAX_PWM				100			//	最大PWM输出为100%油门
+#define MAX_THR       80 			//	油门通道最大占比80%，留20%给控制量
+#define READY_SPEED   20			//	解锁后电机转速20%油门
 //=========================================
 
 
 
+//==================我的宏定义====================
+//  全局输出，CH_filter[],0横滚，1俯仰，2油门，3航向 范围：+-500	
+#define CMOADNE_BOARD               //有宏定义就是用自己的飞控板，没有就是用其他飞控板
 
+#ifdef CMOADNE_BOARD            //ANO不用报警
+//#define LOW_VOLATAGE_ALARM          //是否开启抵押报警
+#endif
+
+#define NS_NO_SIGNAL    0           //无信号
+#define NS_MAN        1             //完全人
+#define NS_COMPUTER   2             //完全电脑   一般用不着
+#define NS_FINISH_AUTO  3         //完成测试的
+#define NS_NOW_ONE_TEST   4   //当前测试
+
+
+
+#define HEIGHT_CTRL_DEATHZOOM   50  //高度控制死区，5cm以内不控制
+#define HEIGHT_UP_THR           600 //高度上升油门值
+#define HEIGHT_KEEP             500 //高度保持油门值
+#define HEIGHT_DOWN_THR         400 //高度下降油门值
+#define HEIGHT_THR_CTRL_MAX     100 //油门最大调解量
+
+
+//#define ULTRA_SPEED 		 300    // mm/s
+//#define ULTRA_MAX_HEIGHT 1500   // mm
+//#define ULTRA_INT        300    // 积分幅度
+
+
+#define ULTRA_SPEED 		 800    // mm/s                                         //改了啊啊啊  300
+#define ULTRA_INT        300    // 积分幅度
+#define MAX_HEIGHT_CONTROL 1220   // mm  最高高度
+#define MAN_ULTRA_SPEED       100       //MM/S
+#define MIN_HEIGHT_CONTROL  300     //最低高度
+#define ULTRA_ERROR         200     //上下两次大于，丢弃值
 
 
 #endif
+
+/******************* (C) COPYRIGHT 2017 Cmoadne *****END OF FILE************/
 

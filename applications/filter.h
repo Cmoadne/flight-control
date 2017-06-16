@@ -3,6 +3,7 @@
 
 #include "parameter.h"
 
+
 //float Moving_Average(u8 item,u8 width_num,float in);
 void Moving_Average(float in,float moavarray[],u16 len ,u16 fil_cnt[2],float *out);
 float Moving_Median(u8 item,u8 width_num,float in);

@@ -1,3 +1,12 @@
+/****************(C) COPYRIGHT 2017 Cmoadne********************
+// 文件名 : drv_w25qxx.c
+// 路径   : K:\2016_2\EE\Train3_4\my_change\F407_FC_ANO\drivers
+// 作者   : Cmoande
+// 日期   : 2017/05/15
+// 描述   : 外扩flash驱动
+// 备注   :
+// 版本   : V0.0  2017.5.15  初始版本 
+******************************************************************/ 
 #include "stdio.h"
 #include  "drv_w25qxx.h"
 
@@ -406,4 +415,6 @@ flash_info_t *Flash_GetInfo(void)
 {
  return &flash_info;
 }
+
+/******************* (C) COPYRIGHT 2017 Cmoadne *****END OF FILE************/
 

@@ -5,19 +5,19 @@
 
 typedef struct
 {
-	float err;
-	float err_old;
-	float err_d;
-	float err_i;
-	float pid_out;
+    float err;
+    float err_old;
+    float err_d;
+    float err_i;
+    float pid_out;
 
 }_st_height_pid_v;
 
 typedef struct
 {
-	float kp;
-	float kd;
-	float ki;
+    float kp;
+    float kd;
+    float ki;
 
 }_st_height_pid;
 
@@ -33,12 +33,18 @@ void Baro_Ctrl(float T,float thr);
 
 void Ultra_Ctrl(float T,float thr);
 
+void get_ultra_expect_height(void);
+
 extern float ultra_ctrl_out;
 
 extern float height_ctrl_out;
 
 extern u8 baro_ctrl_start;
 
+extern u16 ultra_expect_height;   //期望高度
+
 extern float ultra_speed,wz_speed,baro_height;
+
+extern float ultra_dis_lpf;
 #endif
 

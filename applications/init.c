@@ -1,12 +1,18 @@
-/******************** (C) COPYRIGHT 2014 ANO Tech ********************************
-  * 作者   ：匿名科创
- * 文件名  ：init.c
- * 描述    ：飞控初始化
- * 官网    ：www.anotc.com
- * 淘宝    ：anotc.taobao.com
- * 技术Q群 ：190169595
-**********************************************************************************/
+/****************(C) COPYRIGHT 2017 Cmoadne********************
+// 文件名 : init.c
+// 路径   : K:\2016_2\EE\Train3_4\my_change\F407_FC_ANO\applications
+// 作者   : Cmoande
+// 日期   : 2017/05/10
+// 描述   : 外设初始化
+// 备注   :
+// 版本   : V0.0  2017.6.16  Cmoadne  初始代码  对比去年代码
+                *本次更改点
+                      48 波特率50000->115200   Usart2_Init(500000);			//串口2初始化，函数参数为波特率   
+                      新增KEYinit初始化按键
+                      新增串口上层控制
+                      增加ADC初始化
 
+******************************************************************/ 
 #include "include.h"
 #include "pwm_out.h"
 #include "mpu6050.h"
@@ -16,6 +22,10 @@
 #include "ms5611.h"
 #include "ak8975.h"
 #include "ultrasonic.h"
+
+#include "key.h"
+#include "adc.h"
+#include "beep.h"
 
 u8 All_Init()
 {
@@ -39,10 +49,19 @@ u8 All_Init()
 	
 	LED_Init();								//LED功能初始化
 	
-	Usart2_Init(500000);			//串口2初始化，函数参数为波特率
+    //更改6.16
+	Usart2_Init(115200);			//串口2初始化，函数参数为波特率
 	//Usart2_Init(256000);
 
 
+    uart_init(115200);          //树莓派串口
+
+    KEY_Init();                 //按键初始化
+
+    Adc1CH0_Init();             //adc1 CH0
+
+    TIM11_PWM_Init(400-1,168-1);	//84M/84=1Mhz的计数频率,重装载值500，所以PWM频率为 1M/500=2Khz. 蜂鸣器
+    //结束6.16
 	
 	//TIM_INIT();
 	
@@ -70,4 +89,5 @@ u8 All_Init()
 	}
  	return (1);
 }
-/******************* (C) COPYRIGHT 2014 ANO TECH *****END OF FILE************/
+
+/******************* (C) COPYRIGHT 2017 Cmoadne *****END OF FILE************/

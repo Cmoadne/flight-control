@@ -1,3 +1,12 @@
+/****************(C) COPYRIGHT 2017 Cmoadne********************
+// 文件名 : filter.c
+// 路径   : K:\2016_2\EE\Train3_4\my_change\F407_FC_ANO\applications
+// 作者   : Cmoande
+// 日期   : 2017/05/15
+// 描述   : 滤波处理
+// 备注   :
+// 版本   : V0.0  2017.5.15  初始版本
+******************************************************************/ 
 #include "include.h"
 #include "filter.h"
 #include "mymath.h"
@@ -5,25 +14,25 @@
 // #define WIDTH_NUM 101
 // #define FIL_ITEM  10
 
- void Moving_Average(float in,float moavarray[],u16 len ,u16 fil_cnt[2],float *out)
+void Moving_Average(float in,float moavarray[],u16 len ,u16 fil_cnt[2],float *out)
 {
-	u16 width_num;
-	
-	width_num = len ;
-	
-	if( ++fil_cnt[0] > width_num )	
-	{
-		fil_cnt[0] = 0; //now
-		fil_cnt[1] = 1; //old
-	}
-	else
-	{
-		fil_cnt[1] = (fil_cnt[0] == width_num)? 0 : (fil_cnt[0] + 1);
-	}
-	
-	moavarray[ fil_cnt[0] ] = in;
-	*out += ( in - ( moavarray[ fil_cnt[1] ]  ) )/(float)( width_num ) ;
-	
+    u16 width_num;
+
+    width_num = len ;
+
+    if( ++fil_cnt[0] > width_num )	
+    {
+        fil_cnt[0] = 0; //now
+        fil_cnt[1] = 1; //old
+    }
+    else
+    {
+        fil_cnt[1] = (fil_cnt[0] == width_num)? 0 : (fil_cnt[0] + 1);
+    }
+
+    moavarray[ fil_cnt[0] ] = in;
+    *out += ( in - ( moavarray[ fil_cnt[1] ]  ) )/(float)( width_num ) ;
+
 }
 
 
@@ -69,65 +78,68 @@ float med_filter_out[MED_FIL_ITEM];
 
 u8 med_fil_cnt[MED_FIL_ITEM];
 
-float Moving_Median(u8 item,u8 width_num,float in)
+float Moving_Median(u8 item,u8 width_num,float in)    //0,5 数据   1，5数据
 {
-	u8 i,j;
-	float t;
-	float tmp[MED_WIDTH_NUM];
-	
-	if(item >= MED_FIL_ITEM || width_num >= MED_WIDTH_NUM )
-	{
-		return 0;
-	}
-	else
-	{
-		if( ++med_fil_cnt[item] >= width_num )	
-		{
-			med_fil_cnt[item] = 0;
-		}
-		
-		med_filter_tmp[item][ med_fil_cnt[item] ] = in;
-		
-		for(i=0;i<width_num;i++)
-		{
-			tmp[i] = med_filter_tmp[item][i];
-		}
-		
-		for(i=0;i<width_num-1;i++)
-		{
-			for(j=0;j<(width_num-1-i);j++)
-			{
-				if(tmp[j] > tmp[j+1])
-				{
-					t = tmp[j];
-					tmp[j] = tmp[j+1];
-					tmp[j+1] = t;
-				}
-			}
-		}
+    u8 i,j;
+    float t;
+    float tmp[MED_WIDTH_NUM];  //11
 
-		
-		return ( tmp[(u16)width_num/2] );
-	}
+    if(item >= MED_FIL_ITEM || width_num >= MED_WIDTH_NUM )
+    {
+        return 0;
+    }
+    else
+    {
+        if( ++med_fil_cnt[item] >= width_num )	
+        {
+            med_fil_cnt[item] = 0;
+        }
+
+        med_filter_tmp[item][ med_fil_cnt[item] ] = in;
+
+        for(i=0;i<width_num;i++)
+        {
+            tmp[i] = med_filter_tmp[item][i];
+        }
+
+        for(i=0;i<width_num-1;i++)
+        {
+            for(j=0;j<(width_num-1-i);j++)
+            {
+                if(tmp[j] > tmp[j+1])
+                {
+                    t = tmp[j];
+                    tmp[j] = tmp[j+1];
+                    tmp[j+1] = t;
+                }
+            }
+        }
+
+
+        return ( tmp[(u16)width_num/2] );
+    }
 }
 
 
 void simple_3d_trans(_xyz_f_t *ref, _xyz_f_t *in, _xyz_f_t *out) //小范围内正确。
 {
-	static s8 pn;
-	static float h_tmp_x,h_tmp_y;
-	
-	h_tmp_x = my_sqrt(my_pow(ref->z) + my_pow(ref->y));
-	h_tmp_y = my_sqrt(my_pow(ref->z) + my_pow(ref->x));
-	
-	pn = ref->z < 0? -1 : 1;
-	
-	  out->x = ( h_tmp_x *in->x - pn *ref->x *in->z ) ;
-		out->y = ( pn *h_tmp_y *in->y - ref->y *in->z ) ;
-	
-// 	 out->x = h_tmp_x *in->x - ref->x *in->z;
-// 	 out->y = ref->z *in->y - ref->y *in->z;
-	
-	out->z = ref->x *in->x + ref->y *in->y + ref->z *in->z ;
+    static s8 pn;
+    static float h_tmp_x,h_tmp_y;
+
+    h_tmp_x = my_sqrt(my_pow(ref->z) + my_pow(ref->y));
+    h_tmp_y = my_sqrt(my_pow(ref->z) + my_pow(ref->x));
+
+    pn = ref->z < 0? -1 : 1;
+
+    out->x = ( h_tmp_x *in->x - pn *ref->x *in->z ) ;
+    out->y = ( pn *h_tmp_y *in->y - ref->y *in->z ) ;
+
+    // 	 out->x = h_tmp_x *in->x - ref->x *in->z;
+    // 	 out->y = ref->z *in->y - ref->y *in->z;
+
+    out->z = ref->x *in->x + ref->y *in->y + ref->z *in->z ;
 
 }
+
+/******************* (C) COPYRIGHT 2017 Cmoadne *****END OF FILE************/
+
