@@ -219,7 +219,7 @@ void Ultra_Ctrl(float T,float thr)
 {
     float ultra_sp_tmp,ultra_dis_tmp;	
 
-    if(( NS == NS_FINISH_AUTO))
+    if(( NS == NS_FINISH_AUTO)||(NS == NS_NOW_ONE_TEST))
         exp_height = ultra_expect_height;  //直接期望赋值
     else
     {

@@ -339,8 +339,8 @@ static void NS_select(void)
     {
         //        height_ctrl_mode = 0;
         //Feed_Rc_Dog(NS_NOW_TEST);        //1                            //2档
-        //height_ctrl_mode = 2;               //超声波定高
-        Feed_Rc_Dog(NS_MAN);               //3                   //1档自动
+        height_ctrl_mode = 2;               //超声波定高
+        Feed_Rc_Dog(NS_NOW_ONE_TEST);               //3                   //1档自动
     }
     else                                                //3档
     {

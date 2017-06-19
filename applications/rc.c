@@ -76,7 +76,11 @@ void RC_Duty( float T , u16 tmp16_CH[CH_NUM] )
     }
     else if(NS == NS_NOW_ONE_TEST) //当前测试的单项功能
     {
-
+#ifdef CMOADNE_BOARD
+        CH_Mapping_Fun(tmp16_CH,Mapped_CH,CH_in_Cmoadne_Mapping);
+#else
+        CH_Mapping_Fun(tmp16_CH,Mapped_CH,CH_in_other_Mapping);
+#endif
     }
 
 

@@ -343,9 +343,9 @@ void ANO_DT_Data_Receive_Anl(u8 *data_buf,u8 num)
 
     if(*(data_buf+2)==0X03)
     {
-        if( NS != 1 )
+        if( NS != NS_MAN )
         {
-            Feed_Rc_Dog(2);
+            Feed_Rc_Dog(NS_COMPUTER);
         }
 
         RX_CH[THR] = (vs16)(*(data_buf+4)<<8)|*(data_buf+5) ;

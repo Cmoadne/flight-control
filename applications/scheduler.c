@@ -124,7 +124,7 @@ void Duty_20ms()
 void Duty_50ms()
 {
     //更改6.16
-    if(NS == NS_FINISH_AUTO)
+    if(NS != NS_MAN)
         get_ultra_expect_height ();
     else
         if (!fly_ready)      

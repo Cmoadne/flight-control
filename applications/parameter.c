@@ -378,7 +378,7 @@ void Parameter_Save()
         flash_save_en_cnt++;
     }
 
-    if( flash_save_en_cnt > 60 ) // 20 *60 = 1200ms
+    if( flash_save_en_cnt > 600 ) // 20 *60 = 12000ms
     {
         flash_save_en_cnt = 0;
         if( !fly_ready )
