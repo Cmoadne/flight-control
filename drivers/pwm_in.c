@@ -346,8 +346,8 @@ static void NS_select(void)
     {
         //Feed_Rc_Dog(NS_FINISH_RASPBERRY);                                 //最底下那档手控pr，yaw自动
         ////Feed_Rc_Dog(NS_MAN_HEIGHT_CONTROL);          //5   人控高度
-        //height_ctrl_mode = 2;     //超声波控高
-        Feed_Rc_Dog(NS_MAN);               //3                   //1档自动
+        height_ctrl_mode = 2;     //超声波控高
+        Feed_Rc_Dog(NS_FINISH_AUTO);               //3                   //1档自动
     }
 }
 /******************* (C) COPYRIGHT 2017 Cmoadne *****END OF FILE************/

@@ -26,6 +26,7 @@
 #include "key.h"
 #include "adc.h"
 #include "beep.h"
+#include "imagepid.h"
 
 s16 loop_cnt;
 
@@ -118,6 +119,8 @@ void Duty_20ms()
     //更改6.16
     if(!fly_ready)
         Parameter_Save();
+
+    pid_duty();
 }
 
 #define BEEP_COUNT_NUMS  3

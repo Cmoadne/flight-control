@@ -580,6 +580,16 @@
               <FileType>5</FileType>
               <FilePath>.\applications\height_ctrl.h</FilePath>
             </File>
+            <File>
+              <FileName>imagepid.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\applications\imagepid.c</FilePath>
+            </File>
+            <File>
+              <FileName>imagepid.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\applications\imagepid.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

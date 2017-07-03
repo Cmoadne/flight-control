@@ -16,6 +16,7 @@
 #include "mymath.h"
 #include "mpu6050.h"
 
+#include "imagepid.h"
 
 s8 CH_in_other_Mapping[CH_NUM] = {0,1,2,3,4,5,6,7};    //通道映射 ANO 已经自动控制
 s8 CH_in_Cmoadne_Mapping[CH_NUM] = {1,0,2,3,7,6,5,4};    //CMOADNE板子通道映射 
@@ -65,12 +66,12 @@ void RC_Duty( float T , u16 tmp16_CH[CH_NUM] )
         CH_Mapping_Fun(RX_CH,Mapped_CH,CH_in_other_Mapping);
     else if( NS == NS_FINISH_AUTO ) //测试完成的功能
     {
-        //tmp16_CH[1] = roll_out;     //roll
-        //tmp16_CH[0] = pitch_out;    //pitch
+        tmp16_CH[1] = roll_out;     //roll
+        tmp16_CH[0] = pitch_out;    //pitch
 
-        tmp16_CH[2] = RX_auto[2];    //油门
+        //tmp16_CH[2] = RX_auto[2];    //油门
         //tmp16_CH[3] = RX_auto[3]    //yaw
-        tmp16_CH[7] = RX_auto[7];    //高度
+        //tmp16_CH[7] = RX_auto[7];    //高度
 
         CH_Mapping_Fun(tmp16_CH,Mapped_CH,CH_in_Cmoadne_Mapping);         //遥控器 
     }
