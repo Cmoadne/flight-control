@@ -20,6 +20,7 @@
 #include "usbd_user_hid.h"
 #include "ultrasonic.h"
 
+#include "imagepid.h"
 
 /////////////////////////////////////////////////////////////////////////////////////
 //数据拆分宏定义，在发送大于1字节的数据类型时，比如int16、float等，需要把数据拆分成单独字节进行发送
@@ -205,7 +206,7 @@ void ANO_DT_Data_Exchange(void)
     {
         f.send_pid4 = 0;
         ANO_DT_Send_PID(4,pid_setup.groups.ctrl4.kp,pid_setup.groups.ctrl4.ki,pid_setup.groups.ctrl4.kd,
-            0						,0						,0						,
+            pitch_pid.Kp						,pitch_pid.Ki						,pitch_pid.Kd						,
             0						,0						,0						);
     }
     else if(f.send_location == 2)
@@ -433,6 +434,12 @@ void ANO_DT_Data_Receive_Anl(u8 *data_buf,u8 num)
         //         pid_setup.groups.ctrl3.kp 	= 0.001*( (vs16)(*(data_buf+16)<<8)|*(data_buf+17) );
         //         pid_setup.groups.ctrl3.ki 	= 0.001*( (vs16)(*(data_buf+18)<<8)|*(data_buf+19) );
         //         pid_setup.groups.ctrl3.kd 	= 0.001*( (vs16)(*(data_buf+20)<<8)|*(data_buf+21) );
+
+        pitch_pid.Kp = roll_pid.Kp = 0.001*( (vs16)(*(data_buf+10)<<8)|*(data_buf+11) );
+        pitch_pid.Ki = roll_pid.Ki = 0.001*( (vs16)(*(data_buf+12)<<8)|*(data_buf+13) );
+        pitch_pid.Kd = roll_pid.Kd = 0.001*( (vs16)(*(data_buf+14)<<8)|*(data_buf+15) );
+
+
         if(f.send_check == 0)
         {
             f.send_check = 1;

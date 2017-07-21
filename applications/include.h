@@ -145,7 +145,7 @@ enum
 
 #define ULTRA_SPEED 		 800    // mm/s                                         //改了啊啊啊  300
 #define ULTRA_INT        300    // 积分幅度
-#define MAX_HEIGHT_CONTROL 1220   // mm  最高高度
+#define MAX_HEIGHT_CONTROL 1230   // mm  最高高度
 #define MAN_ULTRA_SPEED       100       //MM/S
 #define MIN_HEIGHT_CONTROL  300     //最低高度
 #define ULTRA_ERROR         200     //上下两次大于，丢弃值
