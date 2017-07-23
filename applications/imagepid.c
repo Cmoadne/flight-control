@@ -11,15 +11,16 @@ PRPID pitch_pid ={
     .Ki=0,
     .Kd=18,
     .integral = 0,
-    .act = 1500,
+    .act = PITCH_MID,
 };
 PRPID roll_pid ={
     .Kp=0.65,
     .Ki=0,
     .Kd=18,
     .integral = 0,
-    .act = 1500,
+    .act = ROLL_MID,
 };
+
 PRPID yaw_pid={
     .Kp=0,
     .Ki=0,
@@ -28,14 +29,111 @@ PRPID yaw_pid={
     .act = 1500,
 };
 
+
+//1
+short int far_1 = 50;   //50cm 算远距
+short int far_no_pid = 45;  //远距时调整大小
+
+//2
+
+
+//3
+//远距pid
+short int far_3 = 50;
+PRPID pitch_pid_far ={
+    .Kp=0.65,
+    .Ki=0,
+    .Kd=18,
+    .integral = 0,
+    .act = PITCH_MID,
+};
+PRPID roll_pid_far ={
+    .Kp=0.65,
+    .Ki=0,
+    .Kd=18,
+    .integral = 0,
+    .act = ROLL_MID,
+};
+
+
 void pid_duty(void)
 {
     if(get_command)
     {
         get_command = 0;
+        //4种  一种大于某个值直接最大速度   或者吧误差搞成非线性 另外一种切换PID 4直接PID计算调参数
+#ifdef UNLINE_PID
+        
+        //1
+        if (RX_auto[0] > far_1)
+            roll_out = ROLL_MID + far_no_pid;
+        else if(RX_auto[0] < -far_1)
+            roll_out = ROLL_MID - far_no_pid;
+        else
+            roll_out = ROLL_MID - PID_realize(&roll_pid,0,RX_auto[0],0);
 
-        roll_out = 1500 - PID_realize(&roll_pid,0,RX_auto[0],0);
-        pitch_out = 1500 + PID_realize(&pitch_pid,0,RX_auto[1],1);    
+        if (RX_auto[1] > far_1)
+            pitch_out = PITCH_MID - far_no_pid;
+        else if(RX_auto[1] < -far_1)
+            pitch_out = PITCH_MID + far_no_pid;
+        else
+            pitch_out = PITCH_MID + PID_realize(&pitch_pid,0,RX_auto[1],1); 
+
+        //2
+        if(ABS(RX_auto[0]) > 20)
+        {
+            if (ABS(RX_auto[0]) > 100)
+                RX_auto[0] = 2*RX_auto[0];
+            else if(ABS(RX_auto[0]) > 80)
+                RX_auto[0] = 1.7*RX_auto[0];
+            else if(ABS(RX_auto[0]) > 60)
+                RX_auto[0] = 1.45*RX_auto[0];
+            else if(ABS(RX_auto[0]) > 40)
+                RX_auto[0] = 1.25*RX_auto[0];
+            else 
+                RX_auto[0] = 1.1*RX_auto[0];
+        }
+        if(ABS(RX_auto[1]) > 20)
+        {
+            if (ABS(RX_auto[1]) > 100)
+                RX_auto[1] = 2*RX_auto[1];
+            else if(ABS(RX_auto[1]) > 80)
+                RX_auto[1] = 1.7*RX_auto[1];
+            else if(ABS(RX_auto[1]) > 60)
+                RX_auto[1] = 1.45*RX_auto[1];
+            else if(ABS(RX_auto[1]) > 40)
+                RX_auto[1] = 1.25*RX_auto[1];
+            else 
+                RX_auto[1] = 1.1*RX_auto[1];
+        }
+        roll_out = ROLL_MID - PID_realize(&roll_pid,0,RX_auto[0],0);
+        pitch_out = PITCH_MID + PID_realize(&pitch_pid,0,RX_auto[1],1);  
+        
+        //3
+        if (RX_auto[0] > far_3)
+        {
+          //  roll_pid  可能要消除另外一个PID的积累》
+            roll_out = ROLL_MID - PID_realize(&roll_pid_far,0,RX_auto[0],0);
+        }
+        else
+        {
+            roll_out = ROLL_MID - PID_realize(&roll_pid,0,RX_auto[0],0);
+        }
+        if (RX_auto[1] > far_3)
+        {
+            //  roll_pid  可能要消除另外一个PID的积累》
+            pitch_out = PITCH_MID - PID_realize(&pitch_pid_far,0,RX_auto[1],0);
+        }
+        else
+        {
+            pitch_out = PITCH_MID - PID_realize(&pitch_pid,0,RX_auto[1],0);
+        }
+        
+#else
+        //4
+        roll_out = ROLL_MID - PID_realize(&roll_pid,0,RX_auto[0],0);
+        pitch_out = PITCH_MID + PID_realize(&pitch_pid,0,RX_auto[1],1);  
+#endif
     }
 }
 
@@ -44,8 +142,8 @@ void pid_duty(void)
 #define NOT_ACT_ERROR        10
 
 
-#define PIT_MAX_ROAD    55
-#define ROL_MAX_ROAD   55
+#define PIT_MAX_POINT   100
+#define ROL_MAX_POINT   100
 
 #define ROL_MAX_BOX     55
 #define PIT_MAX_BOX     55
@@ -82,8 +180,8 @@ float PID_realize(PRPID *a,int setlocation,int nowlocation,char p_r)
         //}
         //else        //road
         //{
-        if(a->act > ROL_MAX_ROAD)  a->act=ROL_MAX_ROAD;
-        if(a->act < -ROL_MAX_ROAD) a->act=-ROL_MAX_ROAD;
+        if(a->act > ROL_MAX_POINT)  a->act=ROL_MAX_POINT;
+        if(a->act < -ROL_MAX_POINT) a->act=-ROL_MAX_POINT;
         // }
     }
     else        //p
@@ -95,8 +193,8 @@ float PID_realize(PRPID *a,int setlocation,int nowlocation,char p_r)
         //}
         //else
         //{
-        if(a->act > PIT_MAX_ROAD)  a->act=PIT_MAX_ROAD;
-        if(a->act < -PIT_MAX_ROAD) a->act=-PIT_MAX_ROAD;
+        if(a->act > PIT_MAX_POINT)  a->act=PIT_MAX_POINT;
+        if(a->act < -PIT_MAX_POINT) a->act=-PIT_MAX_POINT;
         //}
     }
     return(a->act);                    //返回增量值

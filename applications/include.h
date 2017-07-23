@@ -151,6 +151,10 @@ enum
 #define ULTRA_ERROR         200     //上下两次大于，丢弃值
 
 
+//#define UNLINE_PID     //跟踪使用非线性pid
+#define ROLL_MID   1500
+#define PITCH_MID  1500
+
 #endif
 
 /******************* (C) COPYRIGHT 2017 Cmoadne *****END OF FILE************/
