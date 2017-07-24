@@ -139,6 +139,11 @@ void USART1_IRQHandler(void)                	//串口1中断服务程序
                     //                    {
                     switch(key_value)
                     {
+                    case 0://use_tags_height_flag = 1;  //枷锁
+                           //use_i_flag = 1;
+                        break;
+                    case 1://mpu6050.Acc_CALIBRATE = 1;  //解锁
+                        break;
                     case 4://server_duty_flag = 1;        //打舵机
                         break;
                     case 5://use_tags_height_flag = 1;
@@ -148,8 +153,7 @@ void USART1_IRQHandler(void)                	//串口1中断服务程序
                         // use_i_flag = 0;
                         break;
                         //校准
-                    case 1://mpu6050.Acc_CALIBRATE = 1;
-                        break;
+              
                     case 2://mpu6050.Gyro_CALIBRATE = 1;
                         break;
                     case 3://Mag_CALIBRATED = 1;
