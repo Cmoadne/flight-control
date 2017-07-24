@@ -34,8 +34,8 @@ void pid_duty(void)
     {
         get_command = 0;
 
-        roll_out = 1500 - PID_realize(&roll_pid,0,RX_auto[0],0);
-        pitch_out = 1500 + PID_realize(&pitch_pid,0,RX_auto[1],1);    
+        roll_out = 1500 - PID_realize(&roll_pid,0,RX_auto[0]-1500,0);
+        pitch_out = 1500 + PID_realize(&pitch_pid,0,RX_auto[1]-1500,1);    
     }
 }
 
