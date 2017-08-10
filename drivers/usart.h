@@ -15,9 +15,11 @@ extern char  USART_RX_BUF_ROLL[USART_REC_LEN]; //½ÓÊÕ»º³å,×î´óUSART_REC_LEN¸ö×Ö½
 
 extern u16 USART_RX_STA;         		//½ÓÊÕ×´Ì¬±ê¼Ç
 extern char use_i_flag;
+extern int start_information;
+extern u8 beep_alarm_flag;
 //Èç¹ûÏë´®¿ÚÖĞ¶Ï½ÓÊÕ£¬Çë²»Òª×¢ÊÍÒÔÏÂºê¶¨Òå
 void uart_init(u32 bound);
-
+void Usart1SendSelect(char ch);
 
 //½áÊøb
 

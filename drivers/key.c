@@ -20,8 +20,12 @@
 #include "time.h"
 #include "usbd_user_hid.h"
 #include "ultrasonic.h"
+#include "led.h"
 
+char key_mode = 0;
 
+char fly_state_flag = 0;
+char stop_fly_flag = 0;
 //按键初始化函数
 void KEY_Init(void)
 {
@@ -68,6 +72,7 @@ u8 KEY_Scan(u8 mode)
 
 #define KEY_TIMES 0
 #define KEY_DOWN_DELAY_TIMES 200
+#define KEY_DOWN_DELAY_TIMES_COMMOND 100
 
 void Key_CALIBRATE(void)
 {
@@ -97,19 +102,33 @@ void Key_CALIBRATE(void)
     }
     else
     {
-        keydowndelay++;
+        keydowndelay++;        
         if (keydowndelay > KEY_DOWN_DELAY_TIMES)
         {
             keydowndelay = 0;
             key_flag = 0;
-            switch(key)
+            
+            if(key_mode == 0)
             {
-            case 0x01: mpu6050.Acc_CALIBRATE = 1;  break;   //
-            case 0x02: mpu6050.Gyro_CALIBRATE = 1;break;
-            case 0x04: Mag_CALIBRATED = 1;  break;
-            case 0x08: //USART_SendData(USART1,'\n');         //按键4
-                break;
-            default:    break;
+                switch(key)
+                {
+                case 0x01: LED1_ON;key_mode = 1;   break;          //USART_SendData(USART1,'\n');         //按键1        
+                case 0x02: Mag_CALIBRATED = 1;  break;                       //4
+                case 0x04: mpu6050.Acc_CALIBRATE = 1;  break;              //2
+                case 0x08: mpu6050.Gyro_CALIBRATE = 1;break;                                   //3
+                default:    break;
+                }
+            }
+            else if(key_mode == 1)
+            {
+                switch(key)
+                {
+                case 0x01: LED1_OFF;key_mode = 0;  break; //发送已经可以停机指令//mpu6050.Acc_CALIBRATE = 1;  break;   //1
+                case 0x02: //Usart1SendSelect('3'); break;//mpu6050.Gyro_CALIBRATE = 1;break;                                 //4
+                case 0x04: //Usart1SendSelect('1'); break; //发送已经可以停机指令//Mag_CALIBRATED = 1;  break;              //2
+                case 0x08: //Usart1SendSelect('2'); break; //发送已经可以停机指令//USART_SendData(USART1,'\n');         //按键3
+                default:    break;
+                }
             }
         }
     }

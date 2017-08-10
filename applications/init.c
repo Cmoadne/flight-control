@@ -26,7 +26,8 @@
 #include "key.h"
 #include "adc.h"
 #include "beep.h"
-#include "vl53l0x.h"
+#include "usart3.h"
+//#include "vl53l0x.h"
 
 u8 All_Init()
 {
@@ -40,7 +41,7 @@ u8 All_Init()
 	
 	PWM_Out_Init(400);				//初始化电调输出功能	
 	
-	Usb_Hid_Init();						//飞控usb接口的hid初始化
+	//Usb_Hid_Init();						//飞控usb接口的hid初始化
 	
 	MS5611_Init();						//气压计初始化
 	
@@ -54,7 +55,8 @@ u8 All_Init()
 	Usart2_Init(115200);			//串口2初始化，函数参数为波特率
 	//Usart2_Init(256000);
 
-    vl53l0x_Init (9600);
+    //vl53l0x_Init (9600);
+    uart3_init(115200);    //和车的串口
 
     uart_init(115200);          //树莓派串口
 

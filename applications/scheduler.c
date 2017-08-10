@@ -27,6 +27,7 @@
 #include "adc.h"
 #include "beep.h"
 #include "imagepid.h"
+#include "usart3.h"
 
 s16 loop_cnt;
 
@@ -54,8 +55,8 @@ void Loop_check()  //TIME INTTERRUPT
 
 void Duty_1ms()
 {
-    Get_Cycle_T(1);
-    LED_Display( LED_Brightness );								//20级led渐变显示
+    //Get_Cycle_T(1);
+    //LED_Display( LED_Brightness );								//20级led渐变显示
     ANO_DT_Data_Exchange();												//数传通信定时调用
 }
 
@@ -133,7 +134,7 @@ void Duty_50ms()
         if (!fly_ready)      
             Mode();
 //结束6.16
-    LED_Duty();								//LED任务
+    //LED_Duty();								//LED任务
     Ultra_Duty();
 
     //更改6.16
@@ -163,27 +164,38 @@ void Duty_50ms()
         TIM_SetCompare1(TIM11,400);	//修改比较值，修改占空比  
  
 #endif
-    //if (start_information || server_duty_flag)
-    //{
-    //    beep_count++;
-    //    if (beep_count > BEEP_COUNT_NUMS)
-    //    {
-    //        beep_count = 0;
-    //        if (beep_flag == 1)
-    //        {
-    //            TIM_SetCompare1(TIM11,400);	//修改比较值，修改占空比 
-    //            beep_flag = 0;
-    //        }
-    //        else
-    //        {
-    //            beep_flag = 1;
-    //            TIM_SetCompare1(TIM11,200);	//修改比较值，修改占空比 
-    //        }
-    //    }
-    //}
-    //else
-    //    TIM_SetCompare1(TIM11,400);	//修改比较值，修改占空比  
-
+    if (start_information||beep_alarm_flag)
+    {
+        beep_count++;
+        if (beep_count > BEEP_COUNT_NUMS)
+        {
+            beep_count = 0;
+            if (beep_flag == 1)
+            {
+                TIM_SetCompare1(TIM11,400);	//修改比较值，修改占空比 
+                beep_flag = 0;
+            }
+            else
+            {
+                beep_flag = 1;
+                TIM_SetCompare1(TIM11,200);	//修改比较值，修改占空比 
+            }
+        }
+    }
+    else
+        TIM_SetCompare1(TIM11,400);	//修改比较值，修改占空比  
+    if (beep_alarm_flag)
+    {
+        LED2_ON;
+        LED3_ON;
+        LED4_ON;
+    }
+    else
+    {
+        LED2_OFF;
+        LED3_OFF;
+        LED4_OFF;
+    }
     //结束6.16
 }
 

@@ -7,16 +7,16 @@ u16 roll_out = 0;
 u16 pitch_out = 0;
 
 PRPID pitch_pid ={
-    .Kp=0.65,
+    .Kp=0.51,
     .Ki=0,
-    .Kd=18,
+    .Kd=20,
     .integral = 0,
     .act = PITCH_MID,
 };
 PRPID roll_pid ={
-    .Kp=0.65,
+    .Kp=0.51,
     .Ki=0,
-    .Kd=18,
+    .Kd=20,
     .integral = 0,
     .act = ROLL_MID,
 };
@@ -41,16 +41,16 @@ short int far_no_pid = 45;  //远距时调整大小
 //远距pid
 short int far_3 = 50;
 PRPID pitch_pid_far ={
-    .Kp=0.65,
+    .Kp=0.75,
     .Ki=0,
-    .Kd=18,
+    .Kd=19.5,
     .integral = 0,
     .act = PITCH_MID,
 };
 PRPID roll_pid_far ={
-    .Kp=0.65,
+    .Kp=0.75,
     .Ki=0,
-    .Kd=18,
+    .Kd=19.5,
     .integral = 0,
     .act = ROLL_MID,
 };
@@ -65,74 +65,77 @@ void pid_duty(void)
 #ifdef UNLINE_PID
         
         //1
-        if (RX_auto[0] > far_1)
+        if (RX_auto[0] > (1500+far_1))
             roll_out = ROLL_MID + far_no_pid;
-        else if(RX_auto[0] < -far_1)
+        else if(RX_auto[0] < (1500-far_1))
             roll_out = ROLL_MID - far_no_pid;
         else
-            roll_out = ROLL_MID - PID_realize(&roll_pid,0,RX_auto[0],0);
+            roll_out = ROLL_MID - PID_realize(&roll_pid,0,RX_auto[0]-1500,0);
 
-        if (RX_auto[1] > far_1)
+        if (RX_auto[1] > (1500+far_1))
             pitch_out = PITCH_MID - far_no_pid;
-        else if(RX_auto[1] < -far_1)
+        else if(RX_auto[1] < (1500-far_1))
             pitch_out = PITCH_MID + far_no_pid;
         else
-            pitch_out = PITCH_MID + PID_realize(&pitch_pid,0,RX_auto[1],1); 
+            pitch_out = PITCH_MID + PID_realize(&pitch_pid,0,RX_auto[1]-1500,1); 
 
         //2
-        if(ABS(RX_auto[0]) > 20)
+        int error_temp1 = RX_auto[0]-1500;
+        if(ABS(error_temp1) > 20)
         {
-            if (ABS(RX_auto[0]) > 100)
-                RX_auto[0] = 2*RX_auto[0];
-            else if(ABS(RX_auto[0]) > 80)
-                RX_auto[0] = 1.7*RX_auto[0];
-            else if(ABS(RX_auto[0]) > 60)
-                RX_auto[0] = 1.45*RX_auto[0];
-            else if(ABS(RX_auto[0]) > 40)
-                RX_auto[0] = 1.25*RX_auto[0];
+            if (ABS(error_temp1) > 100)
+                error_temp1 = 2*error_temp1;
+            else if(ABS(error_temp1) > 80)
+                error_temp1 = 1.7*error_temp1;
+            else if(ABS(error_temp1) > 60)
+                error_temp1 = 1.45*error_temp1;
+            else if(ABS(error_temp1) > 40)
+                error_temp1 = 1.25*error_temp1;
             else 
-                RX_auto[0] = 1.1*RX_auto[0];
+                error_temp1 = 1.1*error_temp1;
         }
-        if(ABS(RX_auto[1]) > 20)
+        RX_auto[0] = error_temp1 + 1500;
+        error_temp1 = RX_auto[1] - 1500;
+        if(ABS(error_temp1) > 20)
         {
-            if (ABS(RX_auto[1]) > 100)
-                RX_auto[1] = 2*RX_auto[1];
-            else if(ABS(RX_auto[1]) > 80)
-                RX_auto[1] = 1.7*RX_auto[1];
-            else if(ABS(RX_auto[1]) > 60)
-                RX_auto[1] = 1.45*RX_auto[1];
-            else if(ABS(RX_auto[1]) > 40)
-                RX_auto[1] = 1.25*RX_auto[1];
+            if (ABS(error_temp1) > 100)
+                error_temp1 = 2*error_temp1;
+            else if(ABS(error_temp1) > 80)
+                error_temp1 = 1.7*error_temp1;
+            else if(ABS(error_temp1) > 60)
+                error_temp1 = 1.45*error_temp1;
+            else if(ABS(error_temp1) > 40)
+                error_temp1 = 1.25*error_temp1;
             else 
-                RX_auto[1] = 1.1*RX_auto[1];
+                error_temp1 = 1.1*error_temp1;
         }
-        roll_out = ROLL_MID - PID_realize(&roll_pid,0,RX_auto[0],0);
-        pitch_out = PITCH_MID + PID_realize(&pitch_pid,0,RX_auto[1],1);  
+        RX_auto[1] = error_temp1 + 1500;
+        roll_out = ROLL_MID - PID_realize(&roll_pid,0,RX_auto[0]-1500,0);
+        pitch_out = PITCH_MID + PID_realize(&pitch_pid,0,RX_auto[1]-1500,1);  
         
         //3
-        if (RX_auto[0] > far_3)
+        if (RX_auto[0] > (1500+far_3))
         {
           //  roll_pid  可能要消除另外一个PID的积累》
-            roll_out = ROLL_MID - PID_realize(&roll_pid_far,0,RX_auto[0],0);
+            roll_out = ROLL_MID - PID_realize(&roll_pid_far,0,RX_auto[0]-1500,0);
         }
         else
         {
-            roll_out = ROLL_MID - PID_realize(&roll_pid,0,RX_auto[0],0);
+            roll_out = ROLL_MID - PID_realize(&roll_pid,0,RX_auto[0]-1500,0);
         }
         if (RX_auto[1] > far_3)
         {
             //  roll_pid  可能要消除另外一个PID的积累》
-            pitch_out = PITCH_MID - PID_realize(&pitch_pid_far,0,RX_auto[1],0);
+            pitch_out = PITCH_MID - PID_realize(&pitch_pid_far,0,RX_auto[1]-1500,0);
         }
         else
         {
-            pitch_out = PITCH_MID - PID_realize(&pitch_pid,0,RX_auto[1],0);
+            pitch_out = PITCH_MID - PID_realize(&pitch_pid,0,RX_auto[1]-1500,0);
         }
-        
 #else
         //4
-        roll_out = ROLL_MID - PID_realize(&roll_pid,0,RX_auto[0],0);
-        pitch_out = PITCH_MID + PID_realize(&pitch_pid,0,RX_auto[1],1);  
+        roll_out = ROLL_MID - PID_realize(&roll_pid,0,RX_auto[0]-1500,0);
+        pitch_out = PITCH_MID + PID_realize(&pitch_pid,0,RX_auto[1]-1500,1);  
 #endif
     }
 }

@@ -18,6 +18,17 @@
 */
 
 
+// //都是在三档  飞行状态  0  在地上  1 起飞过程  2 飞行过程  3 停机过程  切换到其他2档直接状态回0；
+//二档切三档  如果已经解锁了 且高度大于50cm那么是在 飞行过程中
+
+//飞行过程中2  直接油门1500  高度1980
+//
+extern char fly_state_flag;
+
+
+
+extern char stop_fly_flag;
+
 #define KEY1_PRES 	0x01
 #define KEY2_PRES	0x02
 #define KEY3_PRES	0x04

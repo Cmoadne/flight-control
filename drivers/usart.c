@@ -19,9 +19,12 @@
 #include "string.h"
 #include "stdlib.h"
 #include "imagepid.h"
-
+#include "usart3.h"
+#include "rc.h"
 //我的串口1初始化代码  用于自动控制
 u16 RX_auto[CH_NUM] = {1500,1500,1000,1500,1000,1000,1000,1000}; 
+int start_information = 0;  //开始
+u8 beep_alarm_flag = 0;
 char use_i_flag;  //是否定点使用I
 #if EN_USART1_RX   //如果使能了接收
 //串口1中断服务程序
@@ -96,14 +99,154 @@ void uart_init(u32 bound){
 #define UART_GET_PITCH 1
 #define UART_GET_ROLL  0
 #define UART_GET_THR   2 
-#define UART_GET_HEIGHT  4   //高度控制模式
+#define UART_GET_HEIGHT  7   //高度控制模式
+
+u8 Tx1Buffer[256];
+u8 Tx1Counter=0;
+u8 count1=0; 
 
 void USART1_IRQHandler(void)                	//串口1中断服务程序
 {
     u8 Res;
     static char uart1_selsect = 0;              //收到的是什么数据 
 
+   
     if(USART_GetITStatus(USART1, USART_IT_RXNE) != RESET)  //接收中断(接收到的数据必须是0x0d 0x0a结尾)
+    {
+        Res =USART_ReceiveData(USART1);//(USART1->DR);	//读取接收到的数据
+        if(USART_RX_STA&0x4000)//接收到了0x0d
+        {
+            if(Res!=0x0a)
+                USART_RX_STA=0;//接收错误,重新开始
+            else 
+            {
+
+                switch(uart1_selsect)
+                {
+                case 'p':                   //PITCH
+                    get_command = 1;
+                    RX_auto[UART_GET_PITCH] = atoi(USART_RX_BUF_PITCH);
+                    memset(USART_RX_BUF_PITCH, '\0', sizeof(USART_RX_BUF_PITCH));         //情况数组
+                    break;
+                case 'r':                   //ROLL
+                    get_command = 1;
+                    RX_auto[UART_GET_ROLL] = atoi(USART_RX_BUF_ROLL);
+                    memset(USART_RX_BUF_ROLL, '\0', sizeof(USART_RX_BUF_ROLL));         //情况数组
+                    break;
+                case 's':
+                    start_information = atoi(USART_RX_BUF_ST);
+                    memset(USART_RX_BUF_ST, '\0', sizeof(USART_RX_BUF_ST));         //情况数组      
+                    break;
+                case 'g':
+                    RX_auto[UART_GET_THR] = atoi(USART_RX_BUF_GAS);
+                    memset(USART_RX_BUF_GAS, '\0', sizeof(USART_RX_BUF_GAS)); 
+                    break;
+                case 'h':
+                    RX_auto[UART_GET_HEIGHT] = atoi(USART_RX_BUF_HEIGHT);
+                    memset(USART_RX_BUF_HEIGHT, '\0', sizeof(USART_RX_BUF_HEIGHT)); 
+                    break;
+                case 'k':
+                    key_value = atoi(USART_RX_BUF_KEY);
+                    //                    if(!fly_ready)
+                    //                    {
+                    switch(key_value)
+                    {
+                    case 0://use_tags_height_flag = 1;  //枷锁
+                           //use_i_flag = 1;
+                        fly_ready = 0;
+                        break;
+                    case 1://mpu6050.Acc_CALIBRATE = 1;  //解锁
+                        fly_ready = 1;
+                        break;
+                    case 4://server_duty_flag = 1;        //打舵机
+                        break;
+
+                    case 5:
+                        beep_alarm_flag = 0;
+                        Usart3SendResult(0x20);   //不报警
+                        break;
+                    case 6:
+                        beep_alarm_flag = 1;
+                        Usart3SendResult(0x10);   //报警
+                        break;
+                        //校准
+              
+                    case 2://mpu6050.Gyro_CALIBRATE = 1;
+                        break;
+                    case 3://Mag_CALIBRATED = 1;
+                        break;
+                    default:  
+                        break;
+                    }
+                    //  }
+                    key_value = 0;
+                    memset(USART_RX_BUF_KEY, '\0', sizeof(USART_RX_BUF_KEY));
+                    break;
+                case 'y':                   //YAW
+                    RX_auto[UART_GET_YAW] = atoi(USART_RX_BUF_YAW);
+                    memset(USART_RX_BUF_YAW, '\0', sizeof(USART_RX_BUF_YAW));         //情况数组
+                    break;
+                default: break;
+                }
+                uart1_selsect = 0;
+                USART_RX_STA = 0;	//接收完成了 
+            }
+        }
+        else //还没收到0X0D
+        {	
+            if(Res==0x0d)               //接收到0x0d
+                USART_RX_STA|=0x4000;
+            else
+            {
+                if (uart1_selsect == 0)  //第一个参数
+                    uart1_selsect = Res;
+                else
+                {
+                    switch(uart1_selsect)
+                    {
+                    case 'p':
+                        USART_RX_BUF_PITCH[USART_RX_STA&0X3FFF]=Res ;
+                        USART_RX_STA++; 
+                        break;
+                    case 'r':
+                        USART_RX_BUF_ROLL[USART_RX_STA&0X3FFF]=Res ;
+                        USART_RX_STA++; 
+                        break;
+                    case 's':
+                        USART_RX_BUF_ST[USART_RX_STA&0X3FFF]=Res ;
+                        USART_RX_STA++;
+                        break;
+                    case 'g':
+                        USART_RX_BUF_GAS[USART_RX_STA&0X3FFF] = Res;
+                        USART_RX_STA++; 
+                        break;
+                    case 'h':
+                        USART_RX_BUF_HEIGHT[USART_RX_STA&0X3FFF]=Res ;
+                        USART_RX_STA++;
+                        break;
+                    case 'k':
+                        USART_RX_BUF_KEY[USART_RX_STA&0X3FFF]=Res ;
+                        USART_RX_STA++;
+                        break;
+                    case 'y':
+                        USART_RX_BUF_YAW[USART_RX_STA&0X3FFF]=Res ;
+                        USART_RX_STA++; 
+                        break;
+
+                    default: uart1_selsect = 0;break;             
+                    } 
+
+                    if(USART_RX_STA>(USART_REC_LEN-1))
+                        USART_RX_STA=0;//接收数据错误,重新开始接收	
+                }
+
+            }		 
+        }
+
+    } 
+    
+/*
+     if(USART_GetITStatus(USART1, USART_IT_RXNE) != RESET)  //接收中断(接收到的数据必须是0x0d 0x0a结尾)
     {
         Res =USART_ReceiveData(USART1);//(USART1->DR);	//读取接收到的数据
         if(USART_RX_STA&0x4000)//接收到了0x0d
@@ -169,7 +312,7 @@ void USART1_IRQHandler(void)                	//串口1中断服务程序
                     memset(USART_RX_BUF_YAW, '\0', sizeof(USART_RX_BUF_YAW));         //情况数组
                     break;
                 case 's':
-                    //start_information = atoi(USART_RX_BUF_ST);
+                    start_information = atoi(USART_RX_BUF_ST);
                     memset(USART_RX_BUF_ST, '\0', sizeof(USART_RX_BUF_ST));         //情况数组      
                     break;
                 default: break;
@@ -230,7 +373,59 @@ void USART1_IRQHandler(void)                	//串口1中断服务程序
         }
 
     } 
+    */
+        //发送（进入移位）中断
+    if( USART_GetITStatus(USART1,USART_IT_TXE ) )
+    {
+
+        USART1->DR = Tx1Buffer[Tx1Counter++]; //写DR清除中断标志
+
+        if(Tx1Counter == count1)
+        {
+            USART1->CR1 &= ~USART_CR1_TXEIE;		//关闭TXE（发送中断）中断
+        }
+
+
+        //USART_ClearITPendingBit(USART2,USART_IT_TXE);
+    }
 } 
+
+
+void Uart1_Send(unsigned char *DataToSend ,u8 data_num)
+{
+    u8 i;
+    for(i=0;i<data_num;i++)
+    {
+        Tx1Buffer[count1++] = *(DataToSend+i);
+    }
+
+    if(!(USART1->CR1 & USART_CR1_TXEIE))
+    {
+        USART_ITConfig(USART1, USART_IT_TXE, ENABLE); //打开发送中断
+    }
+
+}
+
+/**
+* @brief  串口三发送小车停止信息
+* @param  NONE
+* @retval NONE
+* @brief  发送帧为[0x00,0x17,0x0d,0x0a]
+*/
+void Usart1SendSelect(char ch)
+{
+    unsigned char result[3] = {'k', ch, 'p'};
+    Uart1_Send(result, 3);
+    //    while ((USART3->SR & 0X40) == 0); //循环发送,直到发送完毕
+    //    USART3->DR = 0x00;
+    //    while ((USART3->SR & 0X40) == 0); //循环发送,直到发送完毕
+    //    USART3->DR = 0x17;
+    //    while ((USART3->SR & 0X40) == 0); //循环发送,直到发送完毕
+    //    USART3->DR = 0x0d;
+    //    while ((USART3->SR & 0X40) == 0); //循环发送,直到发送完毕
+    //    USART3->DR = 0x0a;
+}
+
 #endif	
 
 //我的新增代码结束

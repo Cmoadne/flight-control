@@ -736,14 +736,14 @@
               <FilePath>.\drivers\key.h</FilePath>
             </File>
             <File>
-              <FileName>vl53l0x.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\drivers\vl53l0x.h</FilePath>
+              <FileName>usart3.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\drivers\usart3.c</FilePath>
             </File>
             <File>
-              <FileName>vl53l0x.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\drivers\vl53l0x.c</FilePath>
+              <FileName>usart3.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\drivers\usart3.h</FilePath>
             </File>
           </Files>
         </Group>

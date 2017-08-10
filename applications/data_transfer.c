@@ -138,7 +138,7 @@ void ANO_DT_Data_Exchange(void)
     else if(f.send_speed)
     {
         f.send_speed = 0;
-        ANO_DT_Send_Speed(0,0,wz_speed);
+       // ANO_DT_Send_Speed(0,0,wz_speed);
     }
     /////////////////////////////////////////////////////////////////////////////////////
     else if(f.send_user)
@@ -158,7 +158,7 @@ void ANO_DT_Data_Exchange(void)
     else if(f.send_senser2)
     {
         f.send_senser2 = 0;
-        ANO_DT_Send_Senser2(baroAlt,ultra_distance/10);
+        //ANO_DT_Send_Senser2(baroAlt,ultra_distance/10);
     }	
     /////////////////////////////////////////////////////////////////////////////////////
     else if(f.send_rcdata)
@@ -170,7 +170,9 @@ void ANO_DT_Data_Exchange(void)
     else if(f.send_motopwm)
     {
         f.send_motopwm = 0;
-        ANO_DT_Send_MotoPWM(motor[0],motor[1],motor[2],motor[3],0,0,0,0);
+        ANO_DT_Send_MotoPWM((float)CH[0]+1500,(float)CH[1]+1500,motor[2],motor[3],0,0,0,0);
+        //ANO_DT_Send_MotoPWM(motor[0],motor[1],motor[2],motor[3],0,0,0,0);
+        //ANO_DT_Send_MotoPWM((float)(CH[2]+1500),(float)(CH[3]+1500),(float)(CH[0]+1500),(float)(CH[1]+1500),0,0,0,0);
     }	
     /////////////////////////////////////////////////////////////////////////////////////
     else if(f.send_power)
