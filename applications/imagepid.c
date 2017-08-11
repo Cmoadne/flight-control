@@ -7,16 +7,16 @@ u16 roll_out = 0;
 u16 pitch_out = 0;
 
 PRPID pitch_pid ={
-    .Kp=0.51,
+    .Kp=0.75,
     .Ki=0,
-    .Kd=20,
+    .Kd=19.5,
     .integral = 0,
     .act = PITCH_MID,
 };
 PRPID roll_pid ={
-    .Kp=0.51,
+    .Kp=0.75,
     .Ki=0,
-    .Kd=20,
+    .Kd=19.5,
     .integral = 0,
     .act = ROLL_MID,
 };

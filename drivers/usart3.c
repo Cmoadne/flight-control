@@ -92,7 +92,12 @@ void USART3_IRQHandler(void)                	//串口3中断服务程序
                         if(USART3_RX_BUF[1] == 0x10)  //停车标志
                         {
                             //beep_alarm_flag = 1;
-                            Usart1SendSelect('7');  //发送已经可以停机指令
+                            //Usart1SendSelect('7');  //发送已经可以停机指令
+                            if (fly_state_flag == 2)
+                            {
+                                fly_state_flag = 3;
+                                back_down_flag = 2;
+                            }
                             
                         }
                         //if(USART3_RX_BUF[1] == 0x20)  //关闭报警

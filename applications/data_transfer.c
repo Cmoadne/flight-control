@@ -158,7 +158,7 @@ void ANO_DT_Data_Exchange(void)
     else if(f.send_senser2)
     {
         f.send_senser2 = 0;
-        //ANO_DT_Send_Senser2(baroAlt,ultra_distance/10);
+        ANO_DT_Send_Senser2(baroAlt,ultra_distance/10);
     }	
     /////////////////////////////////////////////////////////////////////////////////////
     else if(f.send_rcdata)

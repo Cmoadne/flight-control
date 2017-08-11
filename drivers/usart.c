@@ -105,6 +105,8 @@ u8 Tx1Buffer[256];
 u8 Tx1Counter=0;
 u8 count1=0; 
 
+char command_beep_flag = 0;
+
 void USART1_IRQHandler(void)                	//串口1中断服务程序
 {
     u8 Res;
@@ -133,6 +135,50 @@ void USART1_IRQHandler(void)                	//串口1中断服务程序
                     RX_auto[UART_GET_ROLL] = atoi(USART_RX_BUF_ROLL);
                     memset(USART_RX_BUF_ROLL, '\0', sizeof(USART_RX_BUF_ROLL));         //情况数组
                     break;
+                case 'k':
+                    key_value = atoi(USART_RX_BUF_KEY);
+                    //                    if(!fly_ready)
+                    //                    {
+                    switch(key_value)
+                    {
+                    case 0://use_tags_height_flag = 1;  //枷锁
+                        //use_i_flag = 1;
+                        //fly_ready = 0;
+                        if (fly_state_flag == 2)
+                        {
+                            fly_state_flag = 3;
+                            back_down_flag = 1;
+                        }
+                        break;
+                    //case 1://mpu6050.Acc_CALIBRATE = 1;  //解锁
+                    //    fly_ready = 1;
+                    //    break;
+                    //case 4://server_duty_flag = 1;        //打舵机
+                    //    break;
+
+                    case 5:
+                        beep_alarm_flag = 0;
+                        Usart3SendResult(0x20);   //不报警
+                        break;
+                    case 6:
+                        beep_alarm_flag = 1;
+                        Usart3SendResult(0x10);   //报警
+                        break;
+                        //校准
+
+                    case 2://mpu6050.Gyro_CALIBRATE = 1;
+                        command_beep_flag = 0;
+                        break;
+                    case 3://Mag_CALIBRATED = 1;
+                        command_beep_flag = 1;
+                        break;
+                    default:  
+                        break;
+                    }
+                    //  }
+                    key_value = 0;
+                    memset(USART_RX_BUF_KEY, '\0', sizeof(USART_RX_BUF_KEY));
+                    break;
                 case 's':
                     start_information = atoi(USART_RX_BUF_ST);
                     memset(USART_RX_BUF_ST, '\0', sizeof(USART_RX_BUF_ST));         //情况数组      
@@ -144,43 +190,6 @@ void USART1_IRQHandler(void)                	//串口1中断服务程序
                 case 'h':
                     RX_auto[UART_GET_HEIGHT] = atoi(USART_RX_BUF_HEIGHT);
                     memset(USART_RX_BUF_HEIGHT, '\0', sizeof(USART_RX_BUF_HEIGHT)); 
-                    break;
-                case 'k':
-                    key_value = atoi(USART_RX_BUF_KEY);
-                    //                    if(!fly_ready)
-                    //                    {
-                    switch(key_value)
-                    {
-                    case 0://use_tags_height_flag = 1;  //枷锁
-                           //use_i_flag = 1;
-                        fly_ready = 0;
-                        break;
-                    case 1://mpu6050.Acc_CALIBRATE = 1;  //解锁
-                        fly_ready = 1;
-                        break;
-                    case 4://server_duty_flag = 1;        //打舵机
-                        break;
-
-                    case 5:
-                        beep_alarm_flag = 0;
-                        Usart3SendResult(0x20);   //不报警
-                        break;
-                    case 6:
-                        beep_alarm_flag = 1;
-                        Usart3SendResult(0x10);   //报警
-                        break;
-                        //校准
-              
-                    case 2://mpu6050.Gyro_CALIBRATE = 1;
-                        break;
-                    case 3://Mag_CALIBRATED = 1;
-                        break;
-                    default:  
-                        break;
-                    }
-                    //  }
-                    key_value = 0;
-                    memset(USART_RX_BUF_KEY, '\0', sizeof(USART_RX_BUF_KEY));
                     break;
                 case 'y':                   //YAW
                     RX_auto[UART_GET_YAW] = atoi(USART_RX_BUF_YAW);
@@ -212,6 +221,10 @@ void USART1_IRQHandler(void)                	//串口1中断服务程序
                         USART_RX_BUF_ROLL[USART_RX_STA&0X3FFF]=Res ;
                         USART_RX_STA++; 
                         break;
+                    case 'k':
+                        USART_RX_BUF_KEY[USART_RX_STA&0X3FFF]=Res ;
+                        USART_RX_STA++;
+                        break;
                     case 's':
                         USART_RX_BUF_ST[USART_RX_STA&0X3FFF]=Res ;
                         USART_RX_STA++;
@@ -222,10 +235,6 @@ void USART1_IRQHandler(void)                	//串口1中断服务程序
                         break;
                     case 'h':
                         USART_RX_BUF_HEIGHT[USART_RX_STA&0X3FFF]=Res ;
-                        USART_RX_STA++;
-                        break;
-                    case 'k':
-                        USART_RX_BUF_KEY[USART_RX_STA&0X3FFF]=Res ;
                         USART_RX_STA++;
                         break;
                     case 'y':

@@ -1,6 +1,8 @@
 #include "pwm_in.h"
 #include "rc.h"
 #include "include.h"
+#include "key.h"
+#include "ultrasonic.h"
 
 static void NS_select(void);
 u16 Rc_Pwm_In[8];
@@ -329,11 +331,14 @@ void _TIM4_IRQHandler(void)
 #define NS_CH  5
 #endif
 //暂时全部喂1
+char last_NS = NS_MAN;
 static void NS_select(void)
 {
     if (Rc_Pwm_In[NS_CH] < 1200)
     {
         Feed_Rc_Dog(NS_MAN);               //3                   //1档自动
+        last_NS = NS_MAN;
+        fly_state_flag = 0;
     }//NS_MAN
     else if(Rc_Pwm_In[NS_CH] < 1800)
     {
@@ -341,6 +346,8 @@ static void NS_select(void)
         //Feed_Rc_Dog(NS_NOW_TEST);        //1                            //2档
         height_ctrl_mode = 2;               //超声波定高
         Feed_Rc_Dog(NS_NOW_ONE_TEST);               //3                   //1档自动
+        last_NS = NS_NOW_ONE_TEST;
+        fly_state_flag = 0;
     }
     else                                                //3档
     {
@@ -348,6 +355,11 @@ static void NS_select(void)
         ////Feed_Rc_Dog(NS_MAN_HEIGHT_CONTROL);          //5   人控高度
         height_ctrl_mode = 2;     //超声波控高
         Feed_Rc_Dog(NS_FINISH_AUTO);               //3                   //1档自动
+        if((last_NS == NS_NOW_ONE_TEST) && (fly_ready == 1) && (ultra_distance > 500))
+        {
+            fly_state_flag = 2;    //飞行中手动从二档切换三档
+        }
+        last_NS = NS_FINISH_AUTO;
     }
 }
 /******************* (C) COPYRIGHT 2017 Cmoadne *****END OF FILE************/

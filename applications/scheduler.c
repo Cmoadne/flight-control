@@ -110,8 +110,8 @@ void Duty_10ms()
 
     //更改6.16 
 #ifdef CMOADNE_BOARD        //匿名没有按键
-    if (!fly_ready)             //非解锁状态，按键校准
-        Key_CALIBRATE ();
+    //if (!fly_ready)             //非解锁状态，按键校准
+    Key_CALIBRATE ();
 #endif 
 }
 
@@ -182,8 +182,29 @@ void Duty_50ms()
             }
         }
     }
+    else if (command_beep_flag||(fly_state_flag == 3)||(fly_state_flag == 1)) //自动起飞降落报警之后可能删掉
+    {
+        beep_count++;
+        if (beep_count > 1)
+        {
+            beep_count = 0;
+            if (beep_flag == 1)
+            {
+                TIM_SetCompare1(TIM11,400);	//修改比较值，修改占空比 
+                beep_flag = 0;
+            }
+            else
+            {
+                beep_flag = 1;
+                TIM_SetCompare1(TIM11,200);	//修改比较值，修改占空比 
+            }
+        }
+    }
     else
         TIM_SetCompare1(TIM11,400);	//修改比较值，修改占空比  
+
+
+
     if (beep_alarm_flag)
     {
         LED2_ON;
@@ -196,6 +217,10 @@ void Duty_50ms()
         LED3_OFF;
         LED4_OFF;
     }
+
+
+    fly_mode_duty ();   //3档
+
     //结束6.16
 }
 
