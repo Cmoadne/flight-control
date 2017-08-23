@@ -125,6 +125,8 @@ void Duty_20ms()
 }
 
 #define BEEP_COUNT_NUMS  3
+#define SEND_NUM     2
+char send_count_3 = 0; 
 void Duty_50ms()
 {
     //更改6.16
@@ -220,6 +222,40 @@ void Duty_50ms()
 
 
     fly_mode_duty ();   //3档
+    
+    
+    send_count_3++;
+    if(get_tag_flag)
+    {
+        if ((((RX_auto[0]-1500)*(RX_auto[0]-1500) + (RX_auto[1]-1500)*(RX_auto[1]-1500) + (ultra_distance/10)*(ultra_distance/10)) < 22500)&& 
+            (((RX_auto[0]-1500)*(RX_auto[0]-1500) + (RX_auto[1]-1500)*(RX_auto[1]-1500) + (ultra_distance/10)*(ultra_distance/10)) > 2500))
+        {
+            beep_alarm_flag = 1;
+            if (send_count_3 > SEND_NUM)
+            {
+                Usart3SendResult(0x10);   //报警
+                send_count_3 = 0;
+            }
+        }
+        else
+        {         
+           beep_alarm_flag = 0;
+           if (send_count_3 > SEND_NUM)
+           {
+               Usart3SendResult(0x20);   //不报警
+               send_count_3 = 0;
+           }       
+        }
+    }
+    else
+    {         
+        beep_alarm_flag = 0;
+        if (send_count_3 > SEND_NUM)
+        {
+            Usart3SendResult(0x20);   //不报警
+            send_count_3 = 0;
+        }     
+    }
 
     //结束6.16
 }

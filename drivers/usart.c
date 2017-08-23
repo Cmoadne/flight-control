@@ -21,10 +21,12 @@
 #include "imagepid.h"
 #include "usart3.h"
 #include "rc.h"
+#include "key.h"
 //我的串口1初始化代码  用于自动控制
 u16 RX_auto[CH_NUM] = {1500,1500,1000,1500,1000,1000,1000,1000}; 
 int start_information = 0;  //开始
 u8 beep_alarm_flag = 0;
+u8 get_tag_flag = 0;
 char use_i_flag;  //是否定点使用I
 #if EN_USART1_RX   //如果使能了接收
 //串口1中断服务程序
@@ -104,7 +106,7 @@ void uart_init(u32 bound){
 u8 Tx1Buffer[256];
 u8 Tx1Counter=0;
 u8 count1=0; 
-
+char add_p_flag = 0;
 char command_beep_flag = 0;
 
 void USART1_IRQHandler(void)                	//串口1中断服务程序
@@ -157,12 +159,14 @@ void USART1_IRQHandler(void)                	//串口1中断服务程序
                     //    break;
 
                     case 5:
-                        beep_alarm_flag = 0;
-                        Usart3SendResult(0x20);   //不报警
+                        //beep_alarm_flag = 0;
+                        get_tag_flag = 0;
+                        //Usart3SendResult(0x20);   //不报警
                         break;
                     case 6:
-                        beep_alarm_flag = 1;
-                        Usart3SendResult(0x10);   //报警
+                        get_tag_flag= 1;
+                        //beep_alarm_flag = 1;
+                        //Usart3SendResult(0x10);   //报警
                         break;
                         //校准
 
@@ -172,6 +176,25 @@ void USART1_IRQHandler(void)                	//串口1中断服务程序
                     case 3://Mag_CALIBRATED = 1;
                         command_beep_flag = 1;
                         break;
+                    
+                    
+                    
+                    case 8:
+                        //beep_alarm_flag = 0;
+                        //get_tag_flag = 0;
+                        //Usart3SendResult(0x20);   //不报警
+                    add_p_flag = 0;
+                        break;
+                    case 9:
+                        //get_tag_flag= 1;
+                    add_p_flag = 1;
+                        //beep_alarm_flag = 1;
+                        //Usart3SendResult(0x10);   //报警
+                        break;
+                        //校准
+                    
+                    
+                    
                     default:  
                         break;
                     }

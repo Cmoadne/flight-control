@@ -82,19 +82,23 @@ void RC_Duty( float T , u16 tmp16_CH[CH_NUM] )
                 tmp16_CH[1] = 1500;
                 tmp16_CH[0] = 1500;
             }
+            if (stop_mode_flag == 1)
+            {
+                tmp16_CH[0] = 1520;    //pitch
+            }
         }
         else if (fly_state_flag == 2)  //飞行过程
         {
             tmp16_CH[2] = 1500;//RX_auto[2];    //油门1500
-            tmp16_CH[7] = 1980;      //高度阈值
+            tmp16_CH[7] = 1990;      //高度阈值
         }
         else if (fly_state_flag == 3)  //降落
         {
             if ( (stop_mode_flag == 0))
             {
-                tmp16_CH[2] = 1500;//RX_auto[2];    //油门1500    降低完成后自动进入状态0  油门为遥控油门
+                tmp16_CH[2] = gas_num;//RX_auto[2];    //油门1500    降低完成后自动进入状态0  油门为遥控油门
                 tmp16_CH[7] = control_height;      //高度阈值
-                if (ultra_distance < 400)      //高度小于30cm 不控制左右。
+                if (ultra_distance < 300)      //高度小于30cm 不控制左右。
                 {
                     tmp16_CH[1] = 1500;
                     tmp16_CH[0] = 1500;
@@ -102,10 +106,10 @@ void RC_Duty( float T , u16 tmp16_CH[CH_NUM] )
             }
             else if (back_down_flag == 1)
             {
-                tmp16_CH[2] = 1500;//RX_auto[2];    //油门1500    降低完成后自动进入状态0  油门为遥控油门
+                tmp16_CH[2] = gas_num;//RX_auto[2];    //油门1500    降低完成后自动进入状态0  油门为遥控油门
                 tmp16_CH[7] = control_height;      //高度阈值
-                tmp16_CH[0] = 1490;    //pitch
-                if (ultra_distance < 400)      //高度小于30cm 不控制左右。
+                tmp16_CH[0] = 1470;    //pitch
+                if (ultra_distance < 300)      //高度小于30cm 不控制左右。
                 {
                     tmp16_CH[1] = 1500;
                     tmp16_CH[0] = 1500;

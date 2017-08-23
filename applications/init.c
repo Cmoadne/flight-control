@@ -56,7 +56,7 @@ u8 All_Init()
 	//Usart2_Init(256000);
 
     //vl53l0x_Init (9600);
-    uart3_init(115200);    //和车的串口
+    uart3_init(9600);    //和车的串口
 
     uart_init(115200);          //树莓派串口
 

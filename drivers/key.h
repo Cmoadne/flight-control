@@ -30,6 +30,7 @@ extern char stop_mode_flag; //如果为0 原地停止  为1 需要往后飞一点
 
 extern u16 control_height; //起飞降落时候用的高度
 extern char back_down_flag;
+extern u16 gas_num;   //降落用的油门
 #define KEY1_PRES 	0x01
 #define KEY2_PRES	0x02
 #define KEY3_PRES	0x04

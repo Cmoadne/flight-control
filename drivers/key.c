@@ -27,6 +27,7 @@ char key_mode = 0;
 char fly_state_flag = 0;
 char stop_mode_flag = 1; //默认为后退降落
 u16 control_height = 1000; //起飞降落时候用的高度
+u16 gas_num = 1500;   //降落用的油门
 char back_down_flag = 0;   //可以后退降落了   0 不能降落   1 可以降落   2 判断降落
 //按键初始化函数
 void KEY_Init(void)
@@ -151,7 +152,7 @@ void Key_CALIBRATE(void)
     }
 }
 
-#define DELAY_FLY_NUM 50   //50*100  起飞延时
+#define DELAY_FLY_NUM 25   //50*100  起飞延时
 #define BASIC_ONE_DELAY    170   //要求1降落延时
 void fly_mode_duty(void)
 {
@@ -168,11 +169,12 @@ void fly_mode_duty(void)
     {
         if (delay_finish_flag == 0)  //按键后延时一段时间起飞
         {
+            control_height = 1000;
             start_fly_delay++;
             if (start_fly_delay > DELAY_FLY_NUM)
             {
                 delay_finish_flag = 1;
-                control_height = 1000;
+
                 start_fly_delay = 0;
             }
         }
@@ -205,20 +207,33 @@ void fly_mode_duty(void)
         {
             if (first_in_stop == 0)   //第一次进入降落
             {
+                gas_num = 1500;
                 control_height = 2000;  //高度最大
                 first_in_stop = 1;
             }
-            control_height -=20;
-            if (control_height < 1030 )
+
+            if (control_height > 1030 )
             {
-                if (ultra_distance < 300)
+                            control_height -=20;
+                //if (ultra_distance < 400)
+                //{
+
+                //}
+                //else
+                //    control_height += 20;
+            }
+            else 
+            {
+                if ( gas_num > 1060)
+                {
+                    gas_num -= 50;
+                }
+                else
                 {
                     fly_state_flag = 0;    //完成降落
                     first_in_stop = 0;  //便于下次
                     stop_mode_flag = 1;  //后退停止
                 }
-                else
-                    control_height += 20;
             }
         }
         else if (stop_mode_flag == 1)  //后退降落
@@ -227,21 +242,33 @@ void fly_mode_duty(void)
             {
                 if (first_in_stop == 0)   //第一次进入降落
                 {
+                    gas_num = 1500;
                     control_height = 2000;  //高度最大
                     first_in_stop = 1;
                 }
-                control_height -=20;
-                if (control_height < 1030 )
+                if (control_height > 1030 )
                 {
-                    if (ultra_distance < 300)
+                    control_height -=15;
+                    //if (ultra_distance < 200)
+                    //{
+
+                    //}
+                    //else
+                    //    control_height += 20;
+                }
+                else
+                {
+                    if (gas_num > 1030)
+                    {
+                        gas_num -= 20;
+                    }
+                    else
                     {
                         fly_state_flag = 0;    //完成降落
                         first_in_stop = 0;  //便于下次
                         stop_mode_flag = 1;  //后退停止
                         back_down_flag = 0;  //重新清0
                     }
-                    else
-                        control_height += 20;
                 }
             }
         }

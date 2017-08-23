@@ -1,6 +1,7 @@
 #include "include.h"
 #include "imagepid.h"
 #include "usart.h"
+#include "key.h"
 
 u8 get_command = 0;
 u16 roll_out = 0;
@@ -56,6 +57,9 @@ PRPID roll_pid_far ={
 };
 
 
+char count_image = 0;
+#define COUNT_IMAGE_NUM   10
+#define DISTANCE_JIN    25
 void pid_duty(void)
 {
     if(get_command)
@@ -134,8 +138,21 @@ void pid_duty(void)
         }
 #else
         //4
+        
+        
+        
         roll_out = ROLL_MID - PID_realize(&roll_pid,0,RX_auto[0]-1500,0);
         pitch_out = PITCH_MID + PID_realize(&pitch_pid,0,RX_auto[1]-1500,1);  
+        //if (back_down_flag == 2)
+        //{
+        //    //if((RX_auto[0] > 1475) && (RX_auto[0] < 1525) && (RX_auto[1] > 1475) && (RX_auto[1] < 1525))
+        //        count_image++;
+        //    if (count_image > COUNT_IMAGE_NUM)
+        //    {
+        //        count_image = 0;
+        //        back_down_flag = 1;
+        //    }
+        //}
 #endif
     }
 }
@@ -164,13 +181,13 @@ float PID_realize(PRPID *a,int setlocation,int nowlocation,char p_r)
 
     a->integral = a->integral + a->Error;
 
-    //if(use_i_flag == 1)  //定点的时候要加I
-    //    a->Ki = 0.001;
-    //else
-    //{
-    //    a->Ki = 0;
-    //    a->integral = 0;
-    //}
+    if(p_r == 1)
+    {
+    if(add_p_flag == 1)  //定点的时候要加I
+        a->Kp = 0.90;
+    else
+        a->Kp = 0.75;
+    }
     a->act= a->Kp * a->Error + a->Ki * a->integral + a->Kd * (a->Error - a->LastError);
     a->LastError = a->Error ;           //存储误差，用于下次计算
 

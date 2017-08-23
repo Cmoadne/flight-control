@@ -2,6 +2,7 @@
 #include "usart3.h"	
 #include "stdlib.h"
 #include "string.h"
+#include "key.h"
 #include "usart.h"
 //串口1中断服务程序
 //注意,读取USARTx->SR能避免莫名其妙的错误
@@ -96,9 +97,8 @@ void USART3_IRQHandler(void)                	//串口3中断服务程序
                             if (fly_state_flag == 2)
                             {
                                 fly_state_flag = 3;
-                                back_down_flag = 2;
+                                back_down_flag = 1;
                             }
-                            
                         }
                         //if(USART3_RX_BUF[1] == 0x20)  //关闭报警
                         //    beep_alarm_flag = 0;
